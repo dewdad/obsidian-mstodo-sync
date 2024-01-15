@@ -1,4 +1,3 @@
-import { Z_VERSION_ERROR } from 'zlib';
 import moment from 'moment';
 import { Platform, Plugin } from 'obsidian';
 /*
@@ -71,8 +70,8 @@ export type TLogLevelName = ILogLevel[TLogLevelId];
 export class LogManager extends EventEmitter2 {
 	private options: LogOptions = {
 		minLevels: {
-			'': 'info',
-			'mstodo-sync': 'info',
+			'': 'debug',
+			'mstodo-sync': 'debug',
 		},
 	};
 

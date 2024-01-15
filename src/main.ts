@@ -1,13 +1,18 @@
-import { Editor, MarkdownView, Plugin } from 'obsidian';
+import { CachedMetadata, Editor, EditorPosition, MarkdownView, Plugin } from 'obsidian';
 import { TodoApi } from './api/todoApi';
 import { DEFAULT_SETTINGS, MsTodoSyncSettingTab, MsTodoSyncSettings } from './gui/msTodoSyncSettingTab';
-import { createTodayTasks, getTaskIdFromLine, postTask } from './command/msTodoCommand';
+import { createTodayTasks, getTaskIdFromLine, postTask, postTaskAndChildren } from './command/msTodoCommand';
 import { t } from './lib/lang';
 import { log, logging } from './lib/logging';
 
 export default class MsTodoSync extends Plugin {
 	settings: MsTodoSyncSettings;
 	public todoApi: TodoApi;
+
+	// Pulls the meta data for the a page to help with list processing.
+	getPageMetadata(path: string): CachedMetadata | null {
+		return this.app.metadataCache.getCache(path);
+	}
 
 	async onload() {
 		logging.registerConsoleLogger();
@@ -21,12 +26,12 @@ export default class MsTodoSync extends Plugin {
 			this.app.workspace.on('editor-menu', (menu, editor, view) => {
 				menu.addItem((item) => {
 					item.setTitle(t('EditorMenu_SyncToTodo')).onClick(
-						async () =>
+						async (e) =>
 							await postTask(
 								this.todoApi,
 								this.settings.todoListSync?.listId,
 								editor,
-								this.app.workspace.getActiveFile()?.basename,
+								this.app.workspace.getActiveFile()?.path,
 								this,
 							),
 					);
@@ -40,14 +45,49 @@ export default class MsTodoSync extends Plugin {
 			this.app.workspace.on('editor-menu', (menu, editor, view) => {
 				menu.addItem((item) => {
 					item.setTitle(t('EditorMenu_SyncToTodoAndReplace')).onClick(
-						async () =>
+						async (e) =>
 							await postTask(
 								this.todoApi,
 								this.settings.todoListSync?.listId,
 								editor,
-								this.app.workspace.getActiveFile()?.basename,
+								this.app.workspace.getActiveFile()?.path,
 								this,
 								true,
+							),
+					);
+				});
+			}),
+		);
+
+		this.registerEvent(
+			this.app.workspace.on('editor-menu', (menu, editor, view) => {
+				menu.addItem((item) => {
+					item.setTitle('Sync Task with details (Push)').onClick(async () => {
+						await postTaskAndChildren(
+							this.todoApi,
+							this.settings.todoListSync?.listId,
+							editor,
+							this.app.workspace.getActiveFile()?.path,
+							this,
+							true,
+						);
+					});
+				});
+			}),
+		);
+
+		this.registerEvent(
+			this.app.workspace.on('editor-menu', (menu, editor, view) => {
+				menu.addItem((item) => {
+					item.setTitle('Sync Task with details (Pull)').onClick(
+						async () =>
+							await postTaskAndChildren(
+								this.todoApi,
+								this.settings.todoListSync?.listId,
+								editor,
+								this.app.workspace.getActiveFile()?.path,
+								this,
+								false,
 							),
 					);
 				});
@@ -84,7 +124,7 @@ export default class MsTodoSync extends Plugin {
 					this.todoApi,
 					this.settings.todoListSync?.listId,
 					editor,
-					this.app.workspace.getActiveFile()?.basename,
+					this.app.workspace.getActiveFile()?.path,
 					this,
 				),
 		});
@@ -99,7 +139,7 @@ export default class MsTodoSync extends Plugin {
 					this.todoApi,
 					this.settings.todoListSync?.listId,
 					editor,
-					this.app.workspace.getActiveFile()?.basename,
+					this.app.workspace.getActiveFile()?.path,
 					this,
 					true,
 				),
@@ -159,4 +199,31 @@ export default class MsTodoSync extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+
+	// getCurrentLinesFromEditor(editor: Editor): Selection {
+	// 	log(
+	// 		'info',
+	// 		`from: ${editor.getCursor('from')}, to: ${editor.getCursor('to')}, anchor: ${editor.getCursor(
+	// 			'anchor',
+	// 		)}, head: ${editor.getCursor('head')}, general: ${editor.getCursor()}`,
+	// 	);
+
+	// 	let start: EditorPosition;
+	// 	let end: EditorPosition;
+	// 	let lines: number[] = [];
+	// 	if (editor.somethingSelected()) {
+	// 		start = editor.getCursor('from');
+	// 		end = editor.getCursor('to');
+	// 		lines = Array.from({ length: end.line + 1 - start.line }, (v, k) => k + start.line);
+	// 	} else {
+	// 		start = editor.getCursor();
+	// 		end = editor.getCursor();
+	// 		lines.push(start.line);
+	// 	}
+	// 	return {
+	// 		start,
+	// 		end,
+	// 		lines,
+	// 	};
+	// }
 }

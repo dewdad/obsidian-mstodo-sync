@@ -4,6 +4,8 @@ import { Client } from '@microsoft/microsoft-graph-client';
 import { TodoTask, TodoTaskList } from '@microsoft/microsoft-graph-types';
 import { DataAdapter, Notice } from 'obsidian';
 import { MicrosoftAuthModal } from '../gui/microsoftAuthModal';
+import { t } from '../lib/lang';
+
 export class TodoApi {
 	private client: Client;
 	constructor() {
@@ -55,7 +57,7 @@ export class TodoApi {
 			.filter(searchText)
 			.get()
 			.catch((err) => {
-				new Notice('获取失败，请检查同步列表是否已删除');
+				new Notice(t('Notice_UnableToAcquireTaskFromConfiguredList'));
 				return;
 			});
 		if (!res) return;
@@ -65,21 +67,15 @@ export class TodoApi {
 		const endpoint = `/me/todo/lists/${listId}/tasks/${taskId}`;
 		return (await this.client.api(endpoint).get()) as TodoTask;
 	}
-	async createTask(listId: string | undefined, title: string, body?: string): Promise<TodoTask> {
+
+	async createTaskFromToDo(listId: string | undefined, toDo: TodoTask): Promise<TodoTask> {
 		const endpoint = `/me/todo/lists/${listId}/tasks`;
-		return await this.client.api(endpoint).post({
-			title: title,
-			body: {
-				content: body,
-				contentType: 'text',
-			},
-		});
+		return await this.client.api(endpoint).post(toDo);
 	}
-	async updateTask(listId: string | undefined, taskId: string, title: string): Promise<TodoTask> {
+
+	async updateTaskFromToDo(listId: string | undefined, taskId: string, toDo: TodoTask): Promise<TodoTask> {
 		const endpoint = `/me/todo/lists/${listId}/tasks/${taskId}`;
-		return await this.client.api(endpoint).patch({
-			title: title,
-		});
+		return await this.client.api(endpoint).patch(toDo);
 	}
 }
 
@@ -136,10 +132,10 @@ export class MicrosoftClientProvider {
 	private async authByDevice(): Promise<string> {
 		const deviceCodeRequest = {
 			deviceCodeCallback: (response: msalCommon.DeviceCodeResponse) => {
-				new Notice('设备代码已复制到剪贴板,请在打开的浏览器界面输入');
+				new Notice(t('Notice_DeviceCodeOnClipboard'));
 				navigator.clipboard.writeText(response['userCode']);
 				new MicrosoftAuthModal(response['userCode'], response['verificationUri']).open();
-				console.log('设备代码已复制到剪贴板', response['userCode']);
+				console.log(t('Notice_DeviceCodeCopiedToClipboard'), response['userCode']);
 			},
 			scopes: this.scopes,
 		};
