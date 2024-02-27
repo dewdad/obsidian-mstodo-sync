@@ -2,7 +2,7 @@
 	"name": "obsidian-mstodo-sync",
 	"version": "1.0.1",
 	"description": "This is a MsTodoSync plugin for Obsidian (https://obsidian.md)",
-	"main": "main.js",
+	"main": "main.ts",
 	"scripts": {
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"dev": "node esbuild.config.mjs",
