@@ -2,23 +2,6 @@
 
 This plugin allows you to create and synchronize tasks with Microsoft To Do.
 
-## Installation
-
-### Adding plugin via BRAT
-
-1. Install BRAT from the Community Plugins in Obsidian
-2. Open the command palette and run the command **BRAT: Add a beta plugin for testing** (If you want the plugin version to be frozen, use the command **BRAT: Add a beta plugin with frozen version based on a release tag**.)
-3. Using `LumosLovegood/obsidian-mstodo-sync`, copy that into the modal that opens up
-4. Click on **Add Plugin** -- wait a few seconds and BRAT will tell you what is going on
-5. After BRAT confirms the installation, in Settings go to the **Community plugins** tab.
-6. Refresh the list of plugins
-7. Find `obsidian-mstodo-sync` you just installed and Enable it.
-
-### Updating plugin
-
-- Plugin can be updated using the command palette by running the command **Check for updates to all beta plugins and UPDATE**
-- Optionally, beta plugins can be configured to auto-update when starting Obsidian. This feature can be enabled in the **Obsidian42- BRAT" tab in settings.  
-
 ## Development
 
 If you are working on the plugin, you can use the following commands to build and run the plugin:
